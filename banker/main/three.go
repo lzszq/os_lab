@@ -117,6 +117,12 @@ func IsSafe(data Data, p int64, request []int64, useRequest bool) ([]int64, stri
 	}
 	// 是否使用请求向量
 	if useRequest {
+		// 判断分配资源是否足够
+		for i := range data.Available {
+			if data.Available[i] < request[i] {
+				return safeSequence, "可分配资源不足，请等待", false
+			}
+		}
 		if data.ApplyRequest(p, request) {
 			safeSequence = append(safeSequence, p)
 			finish[p] = true
@@ -245,6 +251,7 @@ func (data *Data) PrintTable() {
 	fmt.Println(data.Need)
 	fmt.Printf("Available:   ")
 	fmt.Println(data.Available)
+	fmt.Println("输入 -1 1 以测试当前时刻安全性")
 	fmt.Printf("共有%d个进程，%d类资源\n输入进程号(%d-%d)，请求向量%d维(1,1,...)：", len(data.Allocation), len(data.Available), 0, len(data.Allocation), len(data.Available))
 }
 
@@ -253,13 +260,21 @@ func main() {
 	data := InitData()
 	var num int64
 	var request string
+	var t bool
 	for {
 		data.PrintTable()
 		fmt.Scanf("%d %s\n", &num, &request)
-		safeSequence, content, flag := IsSafe(deepCopy(data), num, stoi(request), true)
+		if num == -1 {
+			t = false
+		} else {
+			t = true
+		}
+		safeSequence, content, flag := IsSafe(deepCopy(data), num, stoi(request), t)
 		fmt.Println(content)
 		if flag {
-			data.ApplyRequest(num, stoi(request))
+			if t {
+				data.ApplyRequest(num, stoi(request))
+			}
 			fmt.Printf("其中一种安全序列是 ")
 			fmt.Println(safeSequence)
 		}
