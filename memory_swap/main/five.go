@@ -113,23 +113,18 @@ loop1:
 	return 100.0 * (float64(blocks.MissingPages) / float64(blocks.Pages))
 }
 
-// 向后查找离得最远的页面序号，如不存在，则选择最后一个不存在的页面序号
+// 向后查找离得最远的页面序号
 func GetOPIIndex(data []Block, pagesQueue PagesQueue, index_i int) int {
-	flag := false
 	result := 0
 	for index_j, j := range data {
 	loop:
-		for index_k, k := range pagesQueue.Data[index_i:] {
-			if k == j.PageNum {
-				data[index_j].Count = int64(index_k)
+		for _, k := range pagesQueue.Data[index_i:] {
+			if k != j.PageNum {
+				data[index_j].Count += 1
+			} else {
 				break loop
 			}
 		}
-		flag = true
-		result = index_j
-	}
-	if flag {
-		return result
 	}
 
 	max := int64(0)
