@@ -76,6 +76,7 @@ func IsFilled(data []Block) bool {
 func FIFO(blocksNum int, pagesQueue PagesQueue) float64 {
 	var blocks Blocks
 	blocks.Init(blocksNum, pagesQueue)
+	// 当未命中时，进入loop2，否则持续执行loop1
 loop1:
 	for _, i := range pagesQueue.Data {
 		fmt.Printf("当前访问页面序列：%d", i)
@@ -108,10 +109,11 @@ loop1:
 			}
 		}
 	}
-	fmt.Printf("缺页率：%.1f%%", 100.0*(float64(blocks.MissingPages)/float64(blocks.Pages)))
+	fmt.Printf("缺页率：%.1f%%\n\n", 100.0*(float64(blocks.MissingPages)/float64(blocks.Pages)))
 	return 100.0 * (float64(blocks.MissingPages) / float64(blocks.Pages))
 }
 
+// 向后查找离得最远的页面序号，如不存在，则选择最后一个不存在的页面序号
 func GetOPIIndex(data []Block, pagesQueue PagesQueue, index_i int) int {
 	flag := false
 	result := 0
@@ -146,6 +148,7 @@ func GetOPIIndex(data []Block, pagesQueue PagesQueue, index_i int) int {
 func OPI(blocksNum int, pagesQueue PagesQueue) float64 {
 	var blocks Blocks
 	blocks.Init(blocksNum, pagesQueue)
+	// 当未命中时，进入loop2，否则持续执行loop1
 loop1:
 	for index_i, i := range pagesQueue.Data {
 		fmt.Printf("当前访问页面序列：%d", i)
@@ -177,10 +180,11 @@ loop1:
 			}
 		}
 	}
-	fmt.Printf("缺页率：%.1f%%", 100.0*(float64(blocks.MissingPages)/float64(blocks.Pages)))
+	fmt.Printf("缺页率：%.1f%%\n\n", 100.0*(float64(blocks.MissingPages)/float64(blocks.Pages)))
 	return 100.0 * (float64(blocks.MissingPages) / float64(blocks.Pages))
 }
 
+// 获取count最大的块内索引
 func GetLRUIndex(data []Block) int {
 	result := 0
 	max := int64(0)
@@ -196,6 +200,7 @@ func GetLRUIndex(data []Block) int {
 func LRU(blocksNum int, pagesQueue PagesQueue) float64 {
 	var blocks Blocks
 	blocks.Init(blocksNum, pagesQueue)
+	// 当未命中时，进入loop2，否则持续执行loop1，并对块内页面作计数
 loop1:
 	for _, i := range pagesQueue.Data {
 		fmt.Printf("当前访问页面序列：%d", i)
@@ -234,19 +239,42 @@ loop1:
 			}
 		}
 	}
-	fmt.Printf("缺页率：%.1f%%", 100.0*(float64(blocks.MissingPages)/float64(blocks.Pages)))
+	fmt.Printf("缺页率：%.1f%%\n\n", 100.0*(float64(blocks.MissingPages)/float64(blocks.Pages)))
 	return 100.0 * (float64(blocks.MissingPages) / float64(blocks.Pages))
 }
 
+// 获取输入
+func GetInput() string {
+	data := GetData().Data
+	fmt.Printf("访问序列：")
+	fmt.Println(data)
+	fmt.Printf("请输入置换算法（1-FIFO，2-OPI，3-LRU，q-quit)：")
+	var algorthmType string
+	fmt.Scanf("%s\n", &algorthmType)
+	return algorthmType
+}
+
 func main() {
-	fmt.Println("FIFO")
-	FIFO(4, GetData())
-	fmt.Println()
-	fmt.Println()
-	fmt.Println("OPI")
-	OPI(4, GetData())
-	fmt.Println()
-	fmt.Println()
-	fmt.Println("LRU")
-	LRU(4, GetData())
+
+loop:
+	for {
+		var blocksNum int
+		switch algorthmType := GetInput(); algorthmType {
+		case "1":
+			fmt.Printf("请输入最小物理块数：")
+			fmt.Scanf("%d\n", &blocksNum)
+			FIFO(blocksNum, GetData())
+		case "2":
+			fmt.Printf("请输入最小物理块数：")
+			fmt.Scanf("%d\n", &blocksNum)
+			OPI(blocksNum, GetData())
+		case "3":
+			fmt.Printf("请输入最小物理块数：")
+			fmt.Scanf("%d\n", &blocksNum)
+			LRU(blocksNum, GetData())
+		case "q":
+			break loop
+		}
+		PrintLine()
+	}
 }
