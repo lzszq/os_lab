@@ -77,20 +77,26 @@ func FCFS(track Track) {
 
 func SSTF(track Track) {
 	minElement := track.TrackStartNum
-	elementIndex := -1
 	var moveDistance []int
 	for cnt := 0; cnt < track.TrackSize; cnt++ {
-		minDistance := math.Inf(0)
+		var tmp_i, tmp []int
 	loop:
 		for index, i := range track.TrackAccessQueue {
 			if i == int(-1) {
 				continue loop
 			}
-			t := math.Abs(float64(minElement - int(i)))
-			if minDistance > t {
-				minDistance = t
-				minElement = int(i)
-				elementIndex = index
+			tmp_i = append(tmp_i, index)
+			tmp = append(tmp, int(math.Abs(float64(minElement-int(i)))))
+		}
+
+		minDistance := tmp[0]
+		elementIndex := tmp_i[0]
+		minElement = track.TrackAccessQueue[elementIndex]
+		for index, i := range tmp {
+			if i < minDistance {
+				elementIndex = tmp_i[index]
+				minDistance = i
+				minElement = track.TrackAccessQueue[elementIndex]
 			}
 		}
 		track.TrackAccessQueue[elementIndex] = -1
